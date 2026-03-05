@@ -7,3 +7,4 @@ MarkupSafe==3.0.3
 Werkzeug==3.1.6
 azure-eventhub
 python-dotenv
+faker

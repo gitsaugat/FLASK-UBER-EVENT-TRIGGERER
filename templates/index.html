@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -155,10 +156,11 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Request a ride</h1>
-        
+
         <div class="input-group">
             <label>Pickup location</label>
             <input type="text" id="pickup" placeholder="Enter pickup location" value="Current Location">
@@ -178,14 +180,22 @@
                 <div class="car-icon">🚐</div>
                 <span>UberXL</span>
             </div>
-            <div class="ride-option" data-type="Comfort">
+            <div class="ride-option" data-type="UberPOOL">
+                <div class="car-icon">👥</div>
+                <span>UberPOOL</span>
+            </div>
+            <div class="ride-option" data-type="Uber Comfort">
                 <div class="car-icon">✨</div>
                 <span>Comfort</span>
+            </div>
+            <div class="ride-option" data-type="Uber Black">
+                <div class="car-icon">🎩</div>
+                <span>Black</span>
             </div>
         </div>
 
         <button class="book-btn" id="book-btn">Book Ride</button>
-        
+
         <div id="status" class="status-msg"></div>
     </div>
 
@@ -237,7 +247,9 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    showStatus('Ride requested! Event sent to Azure Event Hub.', 'success');
+                    const msg = `Ride requested! Event ID: ${result.data.ride_id.substring(0, 8)}`;
+                    showStatus(msg, 'success');
+                    console.log('Event Hub Response:', result);
                 } else {
                     showStatus('Error: ' + (result.error || 'Failed to send event'), 'error');
                 }
@@ -256,4 +268,5 @@
         }
     </script>
 </body>
+
 </html>
