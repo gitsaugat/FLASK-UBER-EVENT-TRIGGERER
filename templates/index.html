@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uber - Request a Ride</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --uber-black: #000000;
+            --uber-white: #FFFFFF;
+            --uber-gray-100: #F6F6F6;
+            --uber-gray-200: #EEEEEE;
+            --uber-gray-600: #6B6B6B;
+            --uber-blue: #276EF1;
+            --radius: 8px;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--uber-gray-100);
+            color: var(--uber-black);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: var(--uber-white);
+            width: 100%;
+            max-width: 400px;
+            padding: 24px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--uber-gray-600);
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--uber-gray-200);
+            border: 2px solid transparent;
+            border-radius: var(--radius);
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            background: var(--uber-white);
+            border-color: var(--uber-black);
+        }
+
+        .ride-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .ride-option {
+            border: 2px solid var(--uber-gray-200);
+            border-radius: var(--radius);
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .ride-option.active {
+            border-color: var(--uber-black);
+            background: var(--uber-gray-100);
+        }
+
+        .ride-option img {
+            width: 48px;
+            margin-bottom: 8px;
+        }
+
+        .ride-option span {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .book-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--uber-black);
+            color: var(--uber-white);
+            border: none;
+            border-radius: var(--radius);
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .book-btn:active {
+            opacity: 0.8;
+        }
+
+        .book-btn:disabled {
+            background: var(--uber-gray-600);
+            cursor: not-allowed;
+        }
+
+        .status-msg {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 14px;
+            display: none;
+        }
+
+        .status-msg.success {
+            color: #059669;
+            display: block;
+        }
+
+        .status-msg.error {
+            color: #DC2626;
+            display: block;
+        }
+
+        /* Simple car icon placeholders */
+        .car-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Request a ride</h1>
+        
+        <div class="input-group">
+            <label>Pickup location</label>
+            <input type="text" id="pickup" placeholder="Enter pickup location" value="Current Location">
+        </div>
+
+        <div class="input-group">
+            <label>Destination</label>
+            <input type="text" id="destination" placeholder="Enter destination">
+        </div>
+
+        <div class="ride-options">
+            <div class="ride-option active" data-type="UberX">
+                <div class="car-icon">🚗</div>
+                <span>UberX</span>
+            </div>
+            <div class="ride-option" data-type="UberXL">
+                <div class="car-icon">🚐</div>
+                <span>UberXL</span>
+            </div>
+            <div class="ride-option" data-type="Comfort">
+                <div class="car-icon">✨</div>
+                <span>Comfort</span>
+            </div>
+        </div>
+
+        <button class="book-btn" id="book-btn">Book Ride</button>
+        
+        <div id="status" class="status-msg"></div>
+    </div>
+
+    <script>
+        const rideOptions = document.querySelectorAll('.ride-option');
+        const bookBtn = document.getElementById('book-btn');
+        const statusMsg = document.getElementById('status');
+        let selectedType = 'UberX';
+
+        rideOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                rideOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                selectedType = option.dataset.type;
+            });
+        });
+
+        bookBtn.addEventListener('click', async () => {
+            const pickup = document.getElementById('pickup').value;
+            const destination = document.getElementById('destination').value;
+
+            if (!pickup || !destination) {
+                showStatus('Please enter both pickup and destination.', 'error');
+                return;
+            }
+
+            const eventData = {
+                event_type: 'ride_request',
+                pickup_location: pickup,
+                destination: destination,
+                ride_type: selectedType,
+                timestamp: new Date().toISOString(),
+                user_id: 'user_12345' // Simulated user ID
+            };
+
+            bookBtn.disabled = true;
+            bookBtn.textContent = 'Booking...';
+            showStatus('Sending request to Azure Event Hub...', '');
+
+            try {
+                const response = await fetch('/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(eventData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showStatus('Ride requested! Event sent to Azure Event Hub.', 'success');
+                } else {
+                    showStatus('Error: ' + (result.error || 'Failed to send event'), 'error');
+                }
+            } catch (err) {
+                showStatus('Network error. Check if the Flask server is running.', 'error');
+                console.error(err);
+            } finally {
+                bookBtn.disabled = false;
+                bookBtn.textContent = 'Book Ride';
+            }
+        });
+
+        function showStatus(msg, type) {
+            statusMsg.textContent = msg;
+            statusMsg.className = 'status-msg ' + type;
+        }
+    </script>
+</body>
+</html>
